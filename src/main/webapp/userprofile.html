@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/myGym.jpg" type="image/jpeg">
+    <title>個人資料</title>
+    <!-- bootstrap 5 CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- sweetalert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet"> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <!-- animate CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <!-- axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+      body {
+            background: linear-gradient(135deg, #3b3b3b, #1f1f1f);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            height: 120vh;
+        }
+
+      .btn-custom {
+          background: linear-gradient(135deg, #602c0d, #9b400f); /* 和頁面風格一致 */
+          color: white;
+          border: none;
+          border-radius: 20px;
+          padding: 5px 20px;
+          font-weight: bold;
+      }
+      .btn-custom:hover { 
+          background: linear-gradient(135deg, #9b400f, #602c0d); /* 反向漸層 */
+      }
+      .label-aligned {
+        min-width: 120px; /* 根據需求調整寬度 */
+        text-align: right;
+        margin-right: 10px; /* 控制標籤與輸入框的距離 */
+      }
+      .input-centered{
+        max-width: 60%; /* 根據需求調整寬度 */
+        margin: 0 auto;
+        text-align: center;
+      }
+
+             /* 導覽列樣式 */
+      .navbar {
+        background: linear-gradient(135deg, #602c0d, #9b400f);
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .navbar-brand {
+        font-weight: bold;
+        color: white;
+        font-size: 1.5rem;
+      }
+      /* 導覽列連結 */
+      .navbar .nav-link {
+        color: white;
+        font-size: 1rem;
+        margin: 0 10px;
+        transition: color 0.3s ease;
+      }
+      .navbar .nav-link:hover {
+        color: #ffd700;
+      }
+    </style>
+
+  </head>
+  <body>
+    <div id="app" class="container mt-5">
+      <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fa-solid fa-dumbbell fa-lg"></i> </i>ChiZhe Fitness Club</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarContent">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="home.html">首頁</a></li>
+                    <li class="nav-item"><a class="nav-link" href="userprofile.html">個人資料</a></li>
+                    <li class="nav-item"><a class="nav-link" href="trainingRecord.html">訓練紀錄</a></li>
+                    <li class="nav-item"><a class="btn btn-warning text-dark fw-bold ms-2" @click="logout">登出</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+      <div v-if="loading" class="text-center mt-5">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      <div v-else class="d-flex justify-content-center align-items-center mt-5"
+        style="height: 100vh; background: linear-gradient( 135deg, #2d3436, #9b400f79 ); 
+          background-blend-mode: overlay;
+          color: white;">
+        <div class="animate__animated animate__fadeIn" 
+          style="max-width: 600px; width: 100%">
+          <div class="card shadow-lg border-0"
+            style="
+              background: rgba(45, 52, 54, 0.9); /* 半透明深灰 */
+              backdrop-filter: blur(8px); /* 模糊效果 */
+              border-radius: 20px;
+              color: white;">
+            <div
+              class="card-header text-white text-center"
+              style="background: linear-gradient(135deg,#602c0d,#9b400f); 
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                font-weight: bold;
+                font-size: 1.5rem;">
+              <i class="bi bi-person-circle"></i> 個人資料
+            </div>
+
+            <form @submit.prevent="submitProfile" class="animate__animated animate__fadeIn" >
+              <div class="card-body p-4 ">
+              <!-- 個人資料表單 -->
+              <div v-if="isEditingPassword" class="mt-4 animate__animated animate__fadeIn ">
+                <!-- 輸入舊密碼 -->
+                <div v-if="!isPasswordVerified" >
+                  <div class="mb-3">
+                    <label class="text-warning fw-bold label-aligned">原密碼:</label>
+                    <input type="password" class="form-control input-centered" v-model="oldPassword" placeholder="請輸入原密碼" />
+                  </div>
+                  <div class="text-center mt-4">
+                    <button type="button" class="btn btn-secondary btn-custom" @click="cancelPasswordEdit">
+                      取消
+                    </button>
+                    <button type="button" class="btn btn-primary btn-custom ms-2" @click="verifyOldPassword">
+                      驗證
+                    </button>
+                  </div>
+                </div>
+                <!-- 新密碼欄位：驗證成功後顯示 -->
+                <div v-else >
+                  <div class=" mb-3">
+                    <label class="text-warning fw-bold label-aligned">新密碼:</label>
+                    <input type="password" class="form-control input-centered" v-model="newPassword" @blur="validatePassword"/>
+                    <div class="text-danger mt-1" v-if="passwordError">{{ passwordError }}</div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="text-warning fw-bold label-aligned">確認新密碼:</label>
+                    <input type="password" class="form-control input-centered" v-model="confirmPassword" @blur="validateConfirmPassword" />
+                    <div class="text-danger mt-1" v-if="confirmPasswordError">{{ confirmPasswordError }}</div>
+                  </div>
+                  <div class="text-center mt-4">
+                    <button type="button" class="btn btn-primary btn-custom" @click="updatePassword">
+                      更改密碼
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-custom ms-2" @click="cancelPasswordEdit">
+                      取消
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="animate__animated animate__fadeIn" >
+              <h2 class="mb-4 ">
+                <!-- 非編輯個人模式 -->
+                <div v-if="!isEditingProfile" class="animate__animated animate__fadeIn text-center ">
+                  <label class="text-warning fw-bold ">姓名:</label>
+                  <strong>{{ userProfile.userName }}</strong>
+                </div>
+                <!-- 編輯個人模式 -->
+                <div v-else class="animate__animated animate__fadeIn d-flex align-items-center">
+                  <label class="text-warning fw-bold label-aligned">姓名:</label>
+                  <input type="text" class="form-control input-centered" v-model="updateUserProfile.userName" placeholder="姓名">
+                </div>
+              </h2>
+
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned" >信箱:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn" >{{ userProfile.emailAddress }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="text" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.emailAddress" placeholder="信箱不能為空" />
+              </div>
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned" >電話:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.userPhone }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="text" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.userPhone" placeholder="10位數字" />
+              </div>
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned">地址:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.userAddress || '未填寫' }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="text" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.userAddress" placeholder="選填" />
+              </div>
+              <div class=" mb-3 d-flex align-items-center ">
+                <label class="text-warning fw-bold label-aligned">性別:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.gender || '未填寫' }}</span>
+                <!-- 編輯個人模式 -->
+                <select v-else type="text" class="form-select animate__animated animate__fadeIn input-centered"  v-model="updateUserProfile.gender" placeholder="選填" >
+                  <option value="" disabled selected>請選擇</option>
+                  <option value="Male">生理男姓</option>
+                  <option value="Female">生理女姓</option>
+                  <option value="Other">其他</option>
+                  <option value="">選填</option>
+                </select>
+
+              </div>
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned">生日:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.birthdate || '未填寫' }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="date" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.birthdate" placeholder="選填" />
+              </div>
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned">緊急聯絡人:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.emergencyContactName || '未填寫' }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="text" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.emergencyContactName"  placeholder="選填" />
+              </div>
+              <div class="mb-3 d-flex align-items-center">
+                <label class="text-warning fw-bold label-aligned">緊急聯絡電話:</label>
+                <!-- 非編輯個人模式 -->
+                <span v-if="!isEditingProfile" class="animate__animated animate__fadeIn">{{ userProfile.emergencyContactPhone || '未填寫' }}</span>
+                <!-- 編輯個人模式 -->
+                <input v-else type="text" class="animate__animated animate__fadeIn form-control input-centered" v-model="updateUserProfile.emergencyContactPhone" placeholder="選填" />
+              </div>
+              
+              <div class="text-center mt-4 d-flex justify-content-center">
+                <!-- 非編輯模式顯示 -->
+                <div v-if="!isEditingProfile && !isEditingPassword" class="animate__animated animate__fadeIn d-flex">
+                  <button type="button" class="btn btn-warning text-dark fw-bold " @click="editProfile">
+                    更新個人資料
+                  </button>
+                  <button type="button" class="btn btn-warning text-dark fw-bold ms-2" @click="editPassword">
+                    更改密碼
+                  </button>
+                </div>
+
+                <!-- 編輯個人資料模式顯示 -->
+                <div v-else-if="isEditingProfile" class="animate__animated animate__fadeIn d-flex">
+                  <button type="button" class="btn btn-secondary btn-custom" @click="cancelEdit">取消</button>
+                  <button type="submit" class="btn btn-primary btn-custom ms-2">儲存</button>
+                </div>
+
+              </div>
+            </div>
+          </form>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <script type="module">
+      import { createApp } from "https://unpkg.com/vue@3.4.19/dist/vue.esm-browser.prod.js";
+      console.log("Vue 初始化代碼開始執行");
+      const app = createApp({
+        data() {
+          return {
+            userProfile: null, // 保存使用者資料
+            loading: true, // 是否在加載中
+            errorMessage: "", // 錯誤訊息
+            updateUserProfile: {}, // 儲存更新的資料
+
+            isEditingProfile: false, // 編輯個人資料模式
+            isEditingPassword: false, // 編輯密碼模式
+            isPasswordVerified: false, // 是否通過密碼驗證模式
+
+            oldPassword: "", //更改密碼(舊密碼)
+            newPassword: "", //更改密碼(新密碼)
+            confirmPassword: "", //確認新密碼
+            passwordError: "", // 新密碼的錯誤訊息
+            confirmPasswordError: "", // 確認新密碼的錯誤訊息
+
+            isAnimatingProfile: false, // 動畫狀態: 更新個人資料
+          };
+        },
+        methods: {
+          async logout() {
+              try {
+                  const result = await Swal.fire({
+                      title: '你想登出嗎?',
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonText: '登出',
+                      cancelButtonText: '取消',
+                  });
+
+                  if (result.isConfirmed) {
+                      const response = await axios.post('/logout');
+                      if (response.status === 200 || response.status === 302) {
+                          await Swal.fire({
+                              title: '登出成功',
+                              text: '即將返回登入頁面',
+                              icon: 'success',
+                              showConfirmButton: false,
+                              timer: 900,
+                          });
+                          window.location.href = '/login.html'; // 返回登入頁面
+                      } else {
+                          throw new Error('登出失敗');
+                      }
+                    }
+              } catch (error) {
+                  Swal.fire({
+                      title: '登出失敗',
+                      text: '請稍後再試',
+                      icon: 'error',
+                  });
+                  console.error('登出失敗:', error);
+              }
+          },
+          async fetchUserProfile() {
+            try {
+              const response = await axios.get("/user/profile"); // 向後端請求個人資料
+              this.userProfile = response.data; //更新頁面資料
+              this.updateUserProfile = { //顯示資料庫資料
+                id: response.data.id,
+                userName: response.data.userName || '',
+                emailAddress: response.data.emailAddress || '', 
+                userPhone: response.data.userPhone || '',
+                userAddress: response.data.userAddress || '',
+                gender: response.data.gender || '',
+                birthdate: response.data.birthdate || '',
+                emergencyContactName: response.data.emergencyContactName || '',
+                emergencyContactPhone: response.data.emergencyContactPhone || ''
+              };
+              console.log("個人資料取得成功:", this.userProfile);
+            } catch (error) {
+              console.error("個人資料取得失敗:", error);
+              this.errorMessage =
+                error.response?.data || "無法載入個人資料，請稍後再試";
+            } finally {
+              this.loading = false; // 加載完成
+            }
+          },
+          // 編輯修改資料
+          async submitProfile(){
+            try {
+              const response = await axios.post("/updateUser",this.updateUserProfile);
+              Swal.fire('成功','個人資料更新成功','success');
+              this.userProfile = response.data; //更新頁面資料
+              this.isEditingProfile = false; //回到讀取模式
+              console.log("資料",this.updateUserProfile);
+            } catch (error) {
+              console.error("更新失敗:", error);
+              const message = error.response?.data?.message || '更新失敗，請稍後再試';
+              Swal.fire('錯誤', message, 'error');
+            }
+          },
+          // 驗證舊密碼
+          async verifyOldPassword() {
+            // 驗證輸入是否為空
+            if (!this.oldPassword) {
+              Swal.fire("錯誤", "請輸入原密碼驗證", "error");
+              return;
+            }
+            // 後端驗證密碼是否一致
+            try {
+              await axios.post("/updateUser/verifyPassword", { oldPassword: this.oldPassword });
+              Swal.fire({
+                title: "成功",
+                text: "密碼驗證成功，請輸入新密碼",
+                icon: "success",
+                showConfirmButton: false, 
+                timer: 800, 
+              }).then(() => {
+                this.isPasswordVerified = true; // 顯示新密碼欄位
+              });
+            } catch (error) {
+              Swal.fire({
+                title: "驗證失敗",
+                text: "密碼輸入錯誤，請重新輸入",
+                icon: "error",
+                showConfirmButton: false, 
+                timer: 1000, 
+              })
+              console.error("密碼驗證失敗:", error);
+            }
+          },
+
+          // 更新密碼
+          async updatePassword() {
+          // 驗證輸入是否為空
+            if (!this.newPassword || !this.confirmPassword) {
+              Swal.fire("錯誤", "請輸入新密碼及確認密碼", "error");
+              return;
+            }
+            // 驗證新密碼與確認密碼是否一致
+            if (this.newPassword !== this.confirmPassword) {
+              Swal.fire("錯誤", "新密碼與確認密碼不一致", "error");
+              return;
+            }
+            try {
+              await axios.post("/updateUser/updatePassword", { newPassword: this.newPassword });
+                Swal.fire("成功", "密碼更新成功", "success");
+                this.cancelPasswordEdit();
+            } catch (error) {
+                Swal.fire("錯誤", "密碼更新失敗", "error");
+                console.error("密碼更新失敗:", error);
+            }
+          },
+          // 驗證新密碼格式
+          validatePassword() {
+            const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
+            if (!this.newPassword.trim()) {
+              this.passwordError = "密碼不能為空";
+            } else if (!passwordPattern.test(this.newPassword)) {
+              this.passwordError = "密碼需至少6位，並包含字母與數字";
+            } else {
+              this.passwordError = "";
+            }
+          },
+          // 驗證確認新密碼是否與新密碼一致
+          validateConfirmPassword() {
+            if (!this.confirmPassword.trim()) {
+              this.confirmPasswordError = "請再次輸入密碼";
+            } else if (this.confirmPassword !== this.newPassword) {
+              this.confirmPasswordError = "兩次輸入的密碼不一致";
+            } else {
+              this.confirmPasswordError = "";
+            }
+          },
+
+          // 進入編輯個人資料模式
+          editProfile() {
+            this.isEditingProfile = true;
+            this.isEditingPassword = false;
+          },
+          // 進入更改密碼模式
+          editPassword() {
+            this.isEditingPassword = true; // 只顯示更改密碼區塊
+            this.isEditingProfile = false; // 隱藏個人資料相關內容
+          },
+          // 取消編輯個人資料模式
+          cancelEdit() {
+            this.updateUserProfile = { ...this.userProfile }; // 恢復原始資料
+            this.isEditingProfile = false; // 退出編輯模式
+          },
+          // 取消更改密碼模式
+          cancelPasswordEdit() {
+            this.isEditingPassword = false; //重製狀態  
+            this.isPasswordVerified = false; //重製狀態
+            this.oldPassword = "";
+            this.newPassword = "";
+            this.confirmPassword = "";
+          },
+
+
+        },
+        mounted() {
+          this.fetchUserProfile(); // 組件加載後請求資料
+        }
+
+      });
+
+      app.mount("#app");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/myGym.jpg" type="image/jpeg">
+    <title>訓練紀錄測試</title>
+
+    <!-- fullcalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet">
+
+    <!-- bootstrap 5 CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+      crossorigin="anonymous"
+    ></script>
+    <!-- bootstrap icon CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- sweetalert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <!-- animate CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <!-- axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #3b3b3b, #1f1f1f);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .page-title {
+            margin-top: 20px ; /* 與導覽列保持距離 */
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #602c0d, #9b400f);
+            border-radius: 10px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+        }
+        /* 月曆容器 */
+        #calendar {
+            max-width: 50%;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #2d3436, #e6a78579);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #9b400f;
+        }
+
+        /* 月曆工具列 */
+        .fc-toolbar {
+            background: linear-gradient(135deg, #602c0d, #9b400f);
+            color: white;
+            border-bottom: 1px solid #9b400f;
+            padding: 10px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .fc-toolbar h2 {
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 星期標題 (週一, 週二, ...) */
+        .fc-col-header-cell-cushion {
+            color: white !important; /* 確保星期標題顏色為白色 */
+            font-weight: bold; /* 加粗字體 */
+            text-align: center;
+        }
+
+        /* 週六的星期標題顏色變紅 */
+        .fc-day-sat .fc-col-header-cell-cushion {
+            color: red !important;
+        }
+
+        /* 週日的星期標題顏色變紅 */
+        .fc-day-sun .fc-col-header-cell-cushion {
+            color: red !important;
+        }
+
+        /* 日期數字 (1, 2, 3...) */
+        .fc-daygrid-day-frame {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(155, 155, 155, 0.3);
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .fc-daygrid-day:hover .fc-daygrid-day-frame {
+            background: rgba(110, 85, 10, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* 日期數字顏色 */
+        .fc-daygrid-day-number {
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 週六的文字顏色為紅色 */
+        .fc-daygrid-day.fc-day-sat .fc-daygrid-day-number,
+        .fc-col-header-cell.fc-day-sat {
+            color: red !important;
+            font-weight: bold;
+        }
+
+        /* 週日的文字顏色為紅色 */
+        .fc-daygrid-day.fc-day-sun .fc-daygrid-day-number,
+        .fc-col-header-cell.fc-day-sun {
+            color: red !important;
+            font-weight: bold;
+        }
+
+        /* 彈跳視窗樣式 */
+        .modal-content {
+            border-radius: 15px;
+            background-color: #2d3436;
+            color: white;
+        }
+
+        /* 按鈕樣式 */
+        .btn-primary {
+            background: linear-gradient(135deg, #602c0d, #9b400f);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #9b400f, #602c0d);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+        }
+
+        /* 導覽列樣式 */
+        .navbar {
+            background: linear-gradient(135deg, #602c0d, #9b400f);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: white;
+        }
+
+        .navbar .nav-link {
+            color: white;
+        }
+
+        .navbar .nav-link:hover {
+            color: #ffd700;
+        }
+        /* 右側彈跳視窗樣式 */
+        .offcanvas-custom {
+            background: linear-gradient(135deg, #2d3436, #1f1f1f); /* 背景漸層 */
+            color: white; /* 文字顏色 */
+            border-left: 2px solid #9b400f; /* 左邊邊框顏色 */
+        }
+
+        .offcanvas-custom .offcanvas-header {
+            background-color: #602c0d; 
+            color: white; /* 標題顏色 */
+            border-bottom: 1px solid #9b400f;
+        }
+
+        .offcanvas-custom  {
+            background-color: rgba(255, 255, 255, 0.1); /* 表格背景色 */
+            border-color: rgba(155, 155, 155, 0.3); /* 框線顏色 */
+            color: white; /* 文字顏色 */
+        }
+
+        .offcanvas-custom .list-group-item:hover {
+            background-color: rgba(237, 221, 167, 0.599); /* 滑鼠移動背景色 */
+        }
+
+    </style>
+
+</head>
+<body>
+    <div id="app" class="container mt-5">
+
+        <!-- Navigation bar -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#"><i class="bi bi-calendar"></i> MyGym Calendar</a>
+                <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarContent"
+                >
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="home.html">首頁</a></li>
+                        <li class="nav-item"><a class="nav-link" href="userprofile.html">個人資料</a></li>
+                        <li class="nav-item"><a class="btn btn-warning text-dark fw-bold ms-2" href="/logout.html">登出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+
+        <div style="text-align: center;">
+            <h1 class="page-title">訓練紀錄測試</h1>
+        </div>
+        <!-- 漸進式效果 -->
+        <div class="animate__animated animate__fadeIn">
+            <!-- 月曆容器 -->
+            <div id='calendar'></div>
+        </div>
+            <!-- 新增項目與訓練日期的彈跳視窗 -->
+            <div id="modal" class="modal fade" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">新增項目與訓練日期</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label for="modalTrainingTitle" class="form-label">項目</label>
+                                    <input type="text" id="modalTrainingTitle" v-model="modalRecord.trainingTitle" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalTrainingDate" class="form-label">訓練日期</label>
+                                    <input type="text" id="modalTrainingDate" v-model="modalRecord.trainingDate" class="form-control" disabled>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="addTrainingTitle">確認</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 新增訓練內容的彈跳視窗 -->
+            <div class="modal fade" id="addContentModal" tabindex="-1" aria-labelledby="addContentModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="addContentModalLabel">新增訓練內容</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                        <label for="exerciseType" class="form-label">項目</label>
+                        <input type="text" id="exerciseType" v-model="newContent.exerciseType" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                        <label for="trainingWeight" class="form-label">重量</label>
+                        <input type="number" id="trainingWeight" v-model="newContent.trainingWeight" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                        <label for="repetitions" class="form-label">次數</label>
+                        <input type="number" id="repetitions" v-model="newContent.repetitions" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                        <label for="trainingSets" class="form-label">組數</label>
+                        <input type="number" id="trainingSets" v-model="newContent.trainingSets" class="form-control" required>
+                        </div>
+                    </form>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" @click="addTrainingContent">確認</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+
+        
+            <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="offcanvasTrainingRecords" aria-labelledby="offcanvasTrainingRecordsLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasTrainingRecordsLabel">訓練記錄</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <!-- 新增標題按鈕 -->
+                    <div class="mb-3 text-end">
+                        <button class="btn btn-primary" @click="openAddTitleModal">新增標題</button>
+                    </div>
+
+                <!-- 動態顯示資料庫的訓練標題 -->
+                <ul class="list-group">
+                    <!-- 如果標題為空，顯示字串 -->
+                    <li v-if="trainingList.length === 0" class="list-group-item">沒有找到紀錄</li>
+                    <!-- 顯示訓練標題 -->
+                    <li v-for="record in trainingList" :key="record.trainingTitleID" class="list-group-item">
+                        <strong>{{ record.trainingDate }} - {{ record.trainingTitle }}</strong>
+                        <!-- 顯示訓練內容 -->
+                        <table class="table table-sm table-hover text-center align-middle " 
+                                v-if="record.trainingRecords && record.trainingRecords.length > 0">
+                            <thead class="table-secondary">
+                              <tr>
+                                <th scope="col">器材</th>
+                                <th scope="col">重量(kg)</th>
+                                <th scope="col">次數</th>
+                                <th scope="col">組數</th>
+                                <th scope="col">容積(kg)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="content in record.trainingRecords" :key="content.trainingID">
+                                <td>{{ content.exerciseType }}</td>
+                                <td>{{ content.trainingWeight }}</td>
+                                <td>{{ content.repetitions }}</td>
+                                <td>{{ content.trainingSets }}</td>
+                                <td>{{ content.totalTrainingVolume }}</td>
+                              </tr>
+                            </tbody>
+                                <tfoot>                                   
+                                </tfoot>
+                          </table>
+
+                        <!-- 如果沒有訓練內容，顯示這字串 -->
+                        <p v-else class="text-muted">尚無訓練內容</p>
+
+                        <!-- 新增訓練內容按鈕 -->
+                        <div class="d-flex justify-content-center mt-2">
+                            <button class="btn btn-primary btn-sm" @click="openAddContentModal(record.trainingTitleID)"><i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+                </div>
+            </div>
+
+                
+
+    </div>
+
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3.4.19/dist/vue.esm-browser.prod.js';
+
+        const app = createApp({
+            data() {
+                return {
+                    modalRecord: {
+                        trainingTitle: '',
+                        trainingDate: ''
+                    },
+                    // 新增訓練內容
+                    newContent: {
+                        exerciseType: '',
+                        trainingWeight: null,
+                        repetitions: null,
+                        trainingSets: null,
+                    },
+                    trainingList: [], // 當前選定日期的訓練項目
+                    selectedDate: '', // 當前選中的日期
+                    activeIndex: null, // 當前展開的訓練標題 ID
+                    calendar: null, // FullCalendar 實例
+                    selectedTitleID: null // 用於保存當前選中的訓練標題 ID
+                };
+            },
+            mounted() {
+                this.initializeCalendar();
+                // this.handleDateClick("2024-12-13");
+            },
+
+            methods: {
+                // 月曆套件
+                initializeCalendar() {
+                    const calendarEl = document.getElementById('calendar');
+                    this.calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        selectable: true,
+                        locale: 'zh-tw', //設定中文
+                        firstDay: 1, // 設定週的第一天為星期一
+                        dateClick: (info) => {
+                            this.selectedDate = info.dateStr;
+                            this.loadTrainingRecordTitles(this.selectedDate); // 加载紀錄
+                            const offcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasTrainingRecords'));
+                            offcanvas.show(); // 彈跳視窗互動
+
+                        }
+                    });
+                    this.calendar.render();
+                },
+                // 顯示訓練標題
+                async loadTrainingRecordTitles(date) {
+                    try {
+                        const response = await axios.get(`/trainingRecordTitleWithContentsByDate?date=${date}`);
+                        this.trainingList = response.data;
+                        console.log("訓練數據：", JSON.stringify(this.trainingList, null, 2));
+                    } catch (error) {
+                        console.error('加載訓練標題失敗:', error);
+                        Swal.fire('錯誤', '無法加載訓練記錄，請稍後再試', 'error');
+                        this.trainingList = []; // 清空數據以避免殘留
+                    }
+                },
+                // 打開新增互動視窗方法
+                openAddTitleModal() {
+                    this.modalRecord.trainingDate = this.selectedDate; // 預填今天日期
+                    const modal = new bootstrap.Modal(document.getElementById('modal'));
+                    modal.show();
+                },
+                // 新增訓練標題方法
+                async addTrainingTitle() {
+                    try {
+                        // 發送 POST 請求到後端
+                        const response = await axios.post('/createTrainingRecordTitle', this.modalRecord);
+                        Swal.fire({
+                            title: '成功',
+                            text: '訓練項目已新增！',
+                            icon: 'success',
+                            showConfirmButton: false, // 隱藏確認按鈕
+                            timer: 900 // 1.5 秒後自動消失
+                        });
+                        // 關閉互動視窗
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modal'));
+                        modal.hide();
+                        // 清空表單
+                        this.modalRecord = {
+                            trainingTitle: '',
+                            trainingDate: ''
+                        };
+                        // 重新載入這個日期的訓練標題
+                        this.trainingList.push({ ...response.data, trainingRecords: [] });
+
+                    } catch (error) {
+                        console.error('Error:', error.response || error.message);
+                        Swal.fire('失敗', '新增項目失敗，請稍後再試', 'error');
+                    }
+                },
+                // 開啟新增內容按鈕
+                openAddContentModal(trainingTitleID) {
+                    this.selectedTitleID = trainingTitleID; // 保存選中的訓練標題 ID
+                    const modal = new bootstrap.Modal(document.getElementById('addContentModal'));
+                    modal.show();
+                },
+                // 新增訓練內容
+                async addTrainingContent() {
+                    try {
+                    const response = await axios.post(`/addTrainingRecord?titleId=${this.selectedTitleID}`, {
+                        exerciseType: this.newContent.exerciseType,
+                        trainingWeight: this.newContent.trainingWeight,
+                        repetitions: this.newContent.repetitions,
+                        trainingSets: this.newContent.trainingSets,
+                    });
+                    // 更新畫面中的數據
+                    const record = this.trainingList.find(item => item.trainingTitleID === this.selectedTitleID);
+                    if (record) {
+                        record.trainingRecords.push(response.data); // 將新內容加入到列表
+                    }
+                    // 清空表單
+                    this.newContent = {
+                        exerciseType: '',
+                        trainingWeight: null,
+                        repetitions: null,
+                        trainingSets: null,
+                    };
+                    Swal.fire({
+                            title: '成功',
+                            text: '訓練內容已新增！',
+                            icon: 'success',
+                            showConfirmButton: false, // 隱藏確認按鈕
+                            timer: 900 // 1.5 秒後自動消失
+                        });
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addContentModal'));
+                    modal.hide();
+                    this.loadTrainingRecordTitles(this.selectedDate);
+                    } catch (error) {
+                    console.error('新增訓練內容失敗:', error);
+                    Swal.fire('失敗', '新增內容失敗，請稍後再試', 'error');
+                    }
+                },
+
+
+
+
+                // // 測試顯示
+                // async fetchTrainingData(date) {
+                //     try {
+                //     const response = await axios.get("/trainingRecordTitleWithContentsByDate", {
+                //         params: { date },
+                //     });
+                //     this.trainingData = response.data;
+
+                //     
+                //     console.log("訓練數據：", JSON.stringify(this.trainingData, null, 2));
+                //     } catch (error) {
+                //     console.error("取得訓練數據失敗:", error);
+                //     }
+                // },
+                // // 測試點擊
+                // handleDateClick(date) {
+                //     this.selectedDate = date;
+                //     this.fetchTrainingData(date); // 調用方法加載數據
+                // },
+
+            }
+        });
+
+        app.mount('#app');
+    </script>
+
+</body>
+</html>

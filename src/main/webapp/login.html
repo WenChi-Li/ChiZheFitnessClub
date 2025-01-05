@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/myGym.jpg" type="image/jpeg">
+    <title>登入頁面</title>
+    <!-- bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- sweetalert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet"> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <!-- animate CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #3b3b3b, #1f1f1f);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.7);
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #444, #222);
+            border: none;
+            color: white;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #666, #444);
+        }
+        input, select {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid #555;
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .modal-content {
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 15px;
+            color: white;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #555, #333);
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        .modal-footer button {
+            background: linear-gradient(135deg, #444, #222);
+            border: none;
+            color: white;
+        }
+        .modal-footer button:hover {
+            background: linear-gradient(135deg, #666, #444);
+        }
+    </style>
+
+</head>
+<body>
+    <div id="app" class="container mt-5">
+        <div class="form-container animate__animated animate__fadeIn">
+            <h3 class="text-center mb-4"><i class="bi bi-door-open-fill"></i> ChiZhe Fitness Club</h3>
+                <form @submit.prevent="login">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">信箱</label>
+                        <input type="email" class="form-control" 
+                            id="username" 
+                            v-model="loginData.username" 
+                            placeholder="請輸入信箱"  required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密碼</label>
+                        <input type="password" class="form-control" 
+                            id="password" 
+                            v-model="loginData.password" 
+                            autocomplete="current-password" 
+                            placeholder="請輸入密碼" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn  btn-custom">登入</button>
+                        <button type="button" class="btn  btn-custom" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#registerModal">
+                            註冊
+                        </button>
+                    </div>
+                </form>
+                <div v-if="loginError" class="text-danger mt-3 text-center">{{ loginError }}</div>
+        </div>
+    
+    <!-- 註冊互動視窗 -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">註冊新帳號</h5>
+                    <button type="button" class="btn-close" 
+                        data-bs-dismiss="modal" 
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="register">
+                        <!-- 步驟切換 -->
+                        <div v-if="currentStep === 1" class="animate__animated animate__fadeIn">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">姓名</label>
+                            <input type="text" class="form-control" 
+                                id="userName" 
+                                v-model="registerData.userName" 
+                                @blur="validateName" 
+                                :class="{ 'is-invalid': registerError.userName }" 
+                                placeholder="姓名或綽號" required>
+                            <div class="invalid-feedback"> {{ registerError.userName }} </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="emailAddress" class="form-label">信箱</label>
+                            <input type="email" class="form-control" 
+                                id="emailAddress" 
+                                v-model="registerData.emailAddress" 
+                                @input="toLowerCaseEmail" 
+                                @blur="validateEmail" 
+                                :class="{ 'is-invalid': registerError.emailAddress }" 
+                                placeholder="請填寫有效信箱(限小寫英文)" required>
+                            <div class="invalid-feedback"> {{ registerError.emailAddress }} </div>
+                            <!-- <small v-if="registerError.emailAddress" class="text-danger">{{ registerError.emailAddress }}</small> -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPhone" class="form-label">電話</label>
+                            <input type="text" class="form-control" 
+                                id="userPhone" 
+                                v-model="registerData.userPhone" 
+                                @blur="validatePhone" 
+                                :class="{ 'is-invalid': registerError.userPhone}" 
+                                placeholder="需填寫10位數字" required>
+                            <div class="invalid-feedback"> {{ registerError.userPhone }} </div>
+                            <!-- <small v-if="registerError.userPhone" class="text-danger">{{ registerError.userPhone }}</small> -->
+                        </div>
+                        <div class="mb-3 position-relative" >
+                            <label for="userPassword" class="form-label">密碼</label>
+                            <button 
+                                type="button" 
+                                class="btn btn-link text-muted p-0" 
+                                @click="togglePasswordVisibility"
+                                data-bs-toggle="tooltip"
+                                :title="showPassword ? '隱藏密碼' : '顯示密碼'"
+                                style="z-index: 10; padding: 0; margin-left: 15px;">
+                                <i :class="showPassword ? 'bi bi-eye-fill' : 'bi bi-eye-slash-fill'"></i>
+                            </button>
+                            <input :type="showPassword ? 'text' : 'password'" class="form-control pe-5" id="userPassword" v-model="registerData.userPassword" autocomplete="current-password" @blur="validatePassword" :class="{ 'is-invalid': registerError.userPassword}" placeholder="至少6位數，須包含英文與數字" required>
+                            <div class="invalid-feedback"> {{ registerError.userPassword }} </div>
+                            
+                        </div>
+                        <div class="mb-3 position-relative" >
+                            <label for="confirmPassword" class="form-label">確認密碼</label>
+                            <button 
+                                type="button" 
+                                class="btn btn-link text-muted " 
+                                @click="toggleConfirmPasswordVisibility"
+                                data-bs-toggle="tooltip"
+                                :title="showPassword ? '隱藏密碼' : '顯示密碼'"
+                                style="z-index: 10; padding: 0; margin-left: 15px;">
+                                <i :class="showConfirmPassword ? 'bi bi-eye-fill' : 'bi bi-eye-slash-fill'"></i>
+                            </button>
+                            <input :type="showConfirmPassword ? 'text' : 'password'" class="form-control pe-5" 
+                                id="confirmPassword" v-model="registerData.confirmPassword" autocomplete="current-password" @blur="validateConfirmPassword" :class="{ 'is-invalid': registerError.confirmPassword}" placeholder="需與密碼一致" required>
+                            <div class="invalid-feedback"> {{ registerError.confirmPassword }} </div>  
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="goToNextStep" >下一步</button>
+                        </div>
+                        </div>
+                        
+                        <!-- 步驟切換2  -->
+                        <div v-else-if="currentStep === 2"  class="animate__animated animate__fadeIn">
+                            <h5 class="mb-3">非必填項目</h5>
+                        <div class="mb-3">
+                            <label for="userAddress" class="form-label">地址</label>
+                            <input type="text" class="form-control" id="userAddress" v-model="registerData.userAddress">
+                        </div>
+                        <div class="mb-3">
+                            <label for="birthdate" class="form-label">出生日期</label>
+                            <input type="date" class="form-control" id="birthdate" v-model="registerData.birthdate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">性別</label>
+                            <select class="form-select" id="gender" v-model="registerData.gender">
+                                <option value="" disabled selected>請選擇</option>
+                                <option value="male">男</option>
+                                <option value="female">女</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="emergencyContactName" class="form-label">緊急聯絡人</label>
+                            <input type="text" class="form-control" id="emergencyContactName" v-model="registerData.emergencyContactName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="emergencyContactPhone" class="form-label">緊急聯絡人電話</label>
+                            <input type="text" class="form-control" id="emergencyContactPhone" v-model="registerData.emergencyContactPhone">
+                        </div>
+
+
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="goToNextStep" >下一步</button>
+                        </div> -->
+
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @click="currentStep = 1" >上一步</button>
+                            <button type="submit" class="btn btn-primary" >註冊</button>
+                        </div>
+                        </div>
+                    <!-- </transition> -->
+                    </form>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3.4.19/dist/vue.esm-browser.prod.js';
+        console.log("Vue 初始化代碼開始執行");
+        
+        const app = createApp({
+            data() {
+                return {
+                    loginData: {
+                        username: '',
+                        password: ''
+                    },
+                    loginError: '',
+
+                    registerData: {
+                        userName: '',
+                        emailAddress: '',
+                        userPhone: '',
+                        userPassword: '',
+                        confirmPassword: '',
+
+                        userAddress:'',
+                        gender:'',
+                        birthdate:'',
+                        emergencyContactName:'',
+                        emergencyContactPhone:''
+                    },
+                    registerError:{
+                        userName: '',
+                        emailAddress: '',
+                        userPhone: '',
+                        userPassword: '',
+                        confirmPassword: ''
+                    },
+                    // 切換註冊頁面狀態
+                    currentStep: 1 ,
+                    // 密碼顯示狀態
+                    showPassword: false, // 跟踪密碼顯示狀態
+                    showConfirmPassword: false, // 跟踪確認密碼顯示狀態
+                };
+            },
+            methods: {
+                // 登入方法
+                async login() {
+                    try {
+                        const response = await axios.post('/login', new URLSearchParams(this.loginData), {
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                            
+                        });
+                        if (response.status === 200) {
+                            Swal.fire({
+                                title: '登入成功!',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1000
+                            }).then(() => {
+                                window.location.href = '/home.html';
+                            });
+                        }
+                    } catch (error) {
+                        this.loginError = error.response?.data?.error || '登入失敗，請稍後再試';
+                    }
+                },
+                // 註冊方法
+                async register() {
+                    console.log("註冊方法觸發");
+                    console.log("註冊資料：", this.registerData);
+
+                   // 執行所有驗證方法
+                    this.validateName();
+                    this.validateEmail();
+                    this.validatePhone();
+                    this.validatePassword();
+                    this.validateConfirmPassword();
+
+                    // 如果有錯誤，則阻止提交
+                    if (Object.values(this.registerError).some(error => error)) {
+                    Swal.fire('錯誤', '請修正所有欄位的錯誤後再提交', 'error');
+                        return;
+                    }
+                    // 在發送請求時顯示加載狀態，避免使用者多次點擊：
+                    this.loading = true;
+                    try {
+                        const response = await axios.post('/createUser', this.registerData, {
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        console.log("後端回應：", response);
+                        if (response.status === 201) {
+                            Swal.fire('成功', '註冊成功，請再登入', 'success').then(() => {
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                                modal.hide();
+                                // 重製表單數據
+                                this.registerData = {
+                                    userName: '',
+                                    emailAddress: '',
+                                    userPhone: '',
+                                    userPassword: '',
+                                    confirmPassword: '',
+                                    userAddress:'',
+                                    gender:'',
+                                    birthdate:'',
+                                    emergencyContactName:'',
+                                    emergencyContactPhone:''
+                                };
+                                this.currentStep = 1;
+                            });
+                        }
+                    } catch (error) {
+                        console.error("後端錯誤：", error.response);
+                        Swal.fire('錯誤', error.response?.data?.error || '註冊失敗，請稍後再試', 'error');
+                    }finally{
+                        this.loading = false;
+                    }
+                },
+
+                // 切換下一步前的檢查與動作
+                async goToNextStep(){
+                    // 條件錯誤檢查
+                    this.validateName();
+                    this.validateEmail();
+                    this.validatePhone();
+                    this.validatePassword();
+                    this.validateConfirmPassword();
+
+                    if (Object.values(this.registerError).some(error => error)) {
+                    Swal.fire('錯誤', '請修正所有欄位的錯誤後再繼續', 'error');
+                    return;
+                    }
+
+                    try {
+                        const response = await axios.post('/checkDuplicateUser', this.registerData, {
+                            headers: { 'Content-Type': 'application/json' },
+                            emailAddress: this.registerData.emailAddress,
+                            userPhone: this.registerData.userPhone,
+                        });
+                        console.log("後端回應：", response);
+                        // 切到下一步
+                        this.currentStep = 2;
+                    }catch(error){
+                         // 捕捉後端返回的例外訊息
+                        if (error.response && error.response.status === 409) {
+                            Swal.fire('錯誤', error.response.data || '伺服器返回錯誤', 'error');
+                        } else {
+                            // 處理其他錯誤情況
+                            Swal.fire('錯誤', '伺服器錯誤，請稍後再試', 'error');
+                        }
+                        console.log(error.response);
+                    }
+                },
+                // 密碼按鈕切換方法
+                togglePasswordVisibility() {
+                    this.showPassword = !this.showPassword;
+                },
+                toggleConfirmPasswordVisibility() {
+                    this.showConfirmPassword = !this.showConfirmPassword;
+                },
+
+                // 註冊姓名驗證方法(使用@blur)
+                validateName() {
+                    if (!this.registerData.userName.trim()) {
+                        this.registerError.userName = '姓名不能為空';
+                    } else {
+                        this.registerError.userName = '';
+                    }
+                },
+                // 強制使用者都用小寫打信箱
+                toLowerCaseEmail() {
+                    if (this.registerData.emailAddress) {
+                        this.registerData.emailAddress = this.registerData.emailAddress.toLowerCase();
+                    }
+                },
+                // 註冊信箱驗證(使用@blur)
+                validateEmail(){
+                    this.registerData.emailAddress = this.registerData.emailAddress.trim().toLowerCase();
+                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!this.registerData.emailAddress) {
+                        this.registerError.emailAddress = '信箱不能為空';
+                    } else if (!emailPattern.test(this.registerData.emailAddress)) {
+                        this.registerError.emailAddress = '請輸入有效的信箱地址';
+                    } else {
+                        this.registerError.emailAddress = '';
+                    }
+                },
+                // 註冊手機驗證(使用@blur)
+                validatePhone() {
+                const phonePattern = /^\d{10}$/;
+                    if (!this.registerData.userPhone) {
+                        this.registerError.userPhone = '電話號碼不能為空';
+                    } else if (!phonePattern.test(this.registerData.userPhone)) {
+                        this.registerError.userPhone = '請輸入10位數字的電話號碼';
+                    } else {
+                        this.registerError.userPhone = '';
+                    }
+                },
+                // 註冊密碼驗證(使用@blur)
+                validatePassword() {
+                const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
+                    if (!this.registerData.userPassword.trim()) {
+                        this.registerError.userPassword = '密碼不能為空';
+                    } else if (!passwordPattern.test(this.registerData.userPassword)) {
+                        this.registerError.userPassword = '密碼需至少6位，並包含字母與數字';
+                    } else {
+                        this.registerError.userPassword = '';
+                    }
+                },
+                // 註冊密碼確認驗證
+                validateConfirmPassword(){
+                    if (this.registerData.confirmPassword != this.registerData.userPassword) {
+                        this.registerError.confirmPassword = '需與密碼一致';
+                    } else {
+                        this.registerError.confirmPassword = '';
+                    }
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
