@@ -64,6 +64,7 @@ src/
 6. 訓練紀錄區
 ![登入註冊](readMeImages/訓練紀錄.jpg)
 ![登入註冊](readMeImages/新增標題.jpg)
+![登入註冊](readMeImages/新增標題確認.jpg)
 ![登入註冊](readMeImages/訓練內容.jpg)
 ![登入註冊](readMeImages/確認訓練內容.jpg)
 
